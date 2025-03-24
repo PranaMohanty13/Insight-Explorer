@@ -1,0 +1,52 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+
+model Campaign {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String?
+  startDate   DateTime
+  endDate     DateTime?
+  createdAt   DateTime @default(now())
+  calls       Call[]
+}
+
+model Call {
+  id             Int       @id @default(autoincrement())
+  campaignId     Int
+  transcript     String?
+  sentiment      Float?
+  timeOfDay      TimeOfDay
+  outcome        Outcome
+  callDuration   Int?      // Duration in seconds
+  callerAge      Int?
+  callerLocation String?
+  createdAt      DateTime  @default(now())
+  campaign       Campaign  @relation(fields: [campaignId], references: [id])
+}
+
+enum Outcome {
+  DROP
+  SUCCESS
+  ESCALATION
+}
+
+enum TimeOfDay {
+  MORNING
+  AFTERNOON
+  EVENING
+}
+
