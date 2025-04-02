@@ -1,4 +1,4 @@
-import { PrismaClient, Outcome, TimeOfDay } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
@@ -14,11 +14,11 @@ async function main() {
       callsData.push({
         transcript: `Call transcript ${j} for Campaign ${i}`,
         sentiment: parseFloat((Math.random() * 2 - 1).toFixed(2)), // random sentiment between -1 and 1
-        outcome: [Outcome.SUCCESS, Outcome.DROP, Outcome.ESCALATION][Math.floor(Math.random() * 3)],
+        outcome: ['SUCCESS', 'DROP', 'ESCALATION'][Math.floor(Math.random() * 3)],
         callDuration: Math.floor(Math.random() * 600) + 60, // random duration between 60 and 660 seconds
         callerAge: Math.floor(Math.random() * 50) + 20, // random age between 20 and 70
         callerLocation: ['New York', 'Los Angeles', 'Chicago', 'Houston'][Math.floor(Math.random() * 4)],
-        timeOfDay: [TimeOfDay.MORNING, TimeOfDay.AFTERNOON, TimeOfDay.EVENING][Math.floor(Math.random() * 3)],
+        timeOfDay: ['MORNING', 'AFTERNOON', 'EVENING'][Math.floor(Math.random() * 3)],
       });
     }
 
