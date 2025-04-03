@@ -3,14 +3,15 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
- "scripts": {
-  "dev": "concurrently \"next dev --turbopack\" \"open-cli http://localhost:3000\"",
-  "build": "next build",
-  "start": "next start",
-  "lint": "next lint"
-},
+  "scripts": {
+    "dev": "concurrently \"next dev --turbopack\" \"open-cli http://localhost:3000\"",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
   "dependencies": {
     "@prisma/client": "^6.5.0",
+    "framer-motion": "^12.6.3",
     "next": "15.2.3",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
@@ -19,6 +20,7 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
+    "@types/animejs": "^3.1.13",
     "@types/node": "^20",
     "@types/react": "^18.0.28",
     "@types/react-dom": "^18.0.11",
