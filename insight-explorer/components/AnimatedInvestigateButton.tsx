@@ -15,7 +15,7 @@ export default function AnimatedInvestigateButtonCreative({
     setClicked(true);
     onClick();
     // Reset the clicked state after a short delay
-    setTimeout(() => setClicked(false), 200);
+    setTimeout(() => setClicked(false), 800);
   };
 
   return (
