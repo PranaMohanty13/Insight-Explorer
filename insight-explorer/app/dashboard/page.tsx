@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import dynamic from "next/dynamic";
 import {
   LineChart,
   Line,
@@ -11,8 +12,13 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import AnimatedInvestigateButton from "@/components/AnimatedInvestigateButton";
-import LoadingAnimation from "@/components/loading-animation";
 import ReportPopup from "@/components/ReportPopup";
+
+// Dynamically import LoadingAnimation with SSR disabled.
+const LoadingAnimation = dynamic(
+  () => import("@/components/loading-animation"),
+  { ssr: false }
+);
 
 interface CallData {
   id: number;
@@ -83,11 +89,14 @@ export default function Dashboard() {
   ): boolean => {
     let inside = false;
     for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
-      const xi = polygon[i].x, yi = polygon[i].y;
-      const xj = polygon[j].x, yj = polygon[j].y;
+      const xi = polygon[i].x,
+        yi = polygon[i].y;
+      const xj = polygon[j].x,
+        yj = polygon[j].y;
       const intersect =
         (yi > point.y) !== (yj > point.y) &&
-        point.x < ((xj - xi) * (point.y - yi)) / (yj - yi + 0.000001) + xi;
+        point.x <
+          ((xj - xi) * (point.y - yi)) / (yj - yi + 0.000001) + xi;
       if (intersect) inside = !inside;
     }
     return inside;
@@ -152,15 +161,26 @@ export default function Dashboard() {
 
   // Construct a prompt from the selected call data.
   const generatePrompt = (calls: CallData[]): string => {
-    return `Analyze the following call data and provide actionable insights:
-${calls
-  .map(
-    (c) =>
-      `Call ID ${c.id}: Transcript: "${c.transcript}"; Sentiment: ${c.sentiment}; Time of Day: ${c.timeOfDay}; Outcome: ${c.outcome}; Location: ${c.callerLocation}; Date: ${c.createdAt}`
-  )
-  .join("\n")}
-`;
+    return `Please analyze the following call data and provide a comprehensive, conversational report with clear paragraphs and actionable insights. In your analysis, explain in plain language what might be contributing to the observed outcomes.
+  
+  Call Details:
+  ${calls
+    .map(
+      (c) =>
+        `• Call ID ${c.id}:
+    Transcript: ${c.transcript}
+    Sentiment: ${c.sentiment}
+    Time of Day: ${c.timeOfDay}
+    Outcome: ${c.outcome}
+    Location: ${c.callerLocation}
+    Date: ${c.createdAt}
+  `
+    )
+    .join("\n")}
+  `;
   };
+  
+  
 
   // Combined selection logic and DeepSeek API call.
   const handleInvestigate = async () => {
@@ -313,7 +333,7 @@ ${calls
                   left: 0,
                   width: "100%",
                   height: "100%",
-                  cursor: "crosshair",
+                  cursor: "grab",
                 }}
                 onMouseDown={handleMouseDown}
                 onMouseMove={handleMouseMove}
@@ -349,16 +369,16 @@ ${calls
                 )}
               </div>
             </div>
-            {/* Button or Loading Animation */}
+            {/* Button or nothing if loading */}
             <div style={{ padding: "24px" }}>
-              {isLoading ? null : brushPath && !isDrawing && (
+              {!isLoading && brushPath && !isDrawing && (
                 <AnimatedInvestigateButton onClick={handleInvestigate} />
               )}
             </div>
           </div>
         )}
       </div>
-      {/* Loading Overlay (outside the blurred container) */}
+      {/* Loading Overlay (unblurred) */}
       {isLoading && (
         <div
           style={{
