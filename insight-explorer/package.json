@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "concurrently \"next dev --turbopack\" \"open-cli http://localhost:3000\"",
+    "dev": "concurrently \"next dev --turbopack\" \"open-cli http://localhost:3000/dashboard\"",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
