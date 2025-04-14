@@ -193,7 +193,6 @@ export default function Dashboard() {
     const { width: chartWidth, height: chartHeight } =
       overlayRef.current.getBoundingClientRect();
 
-    // Close the polygon if necessary.
     const polygon = [...pathPoints];
     const first = polygon[0];
     const last = polygon[polygon.length - 1];
@@ -268,6 +267,7 @@ export default function Dashboard() {
       }}
     >
       {/* Blurred Dashboard Content */}
+
       <div className={isLoading ? "blur-container" : ""}>
         <div className="header">
           <h1>Campaign Dashboard</h1>
