@@ -52,7 +52,7 @@ I have sent you the .env file
 `npx prisma db push`
 
 ### 🌱 7. Seed the Database
-`npx tsx seed.ts`
+`npx tsx prisma/seed.ts`
 
 ### 🧪 8. Run the App
 `npm run dev`
