@@ -40,7 +40,14 @@ Make sure you have the following installed:
 
 ### 📝 3. Create Environment File
 Create a .env file in the project root and add the following:
-I have sent you the .env file
+
+Database connection URL
+
+`DATABASE_URL="postgresql://fakeuser:fakepassword@localhost:5432/fakedb"`
+
+API Key for external integrations (replace with your actual key)
+
+`API_KEY="your-fake-api-key"`
 
 ### 🐳 4. Start the Database
 `docker compose up -d`
