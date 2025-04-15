@@ -1,8 +1,6 @@
-// app/api/deepseek/route.ts
-
 import { NextResponse } from "next/server";
-import deepseekClient from "@/lib/deepseek-client";
-import { cleanReportText } from "@/lib/cleanReportText";
+import deepseekClient from "@/lib/DeepSeekClient";
+import { cleanReportText } from "@/lib/CleanReportText";
 
 export async function POST(request: Request) {
   try {

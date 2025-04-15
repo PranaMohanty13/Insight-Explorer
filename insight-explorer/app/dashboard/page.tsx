@@ -1,34 +1,17 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import dynamic from "next/dynamic";
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  Tooltip,
-  CartesianGrid,
-  ResponsiveContainer,
-} from "recharts";
+import { useState, useEffect } from "react";
+import { generatePrompt, CallData } from "@/lib/GeneratePromptService";
 import AnimatedInvestigateButton from "@/components/AnimatedInvestigateButton";
 import ReportPopup from "@/components/ReportPopup";
-
-// Dynamically import LoadingAnimation with SSR disabled.
-const LoadingAnimation = dynamic(
-  () => import("@/components/loading-animation"),
-  { ssr: false }
-);
-
-interface CallData {
-  id: number;
-  transcript: string;
-  sentiment: number;
-  timeOfDay: string;
-  outcome: string;
-  callerLocation: string;
-  createdAt: string;
-}
+import {
+  isPointInPolygon,
+  segmentIntersectsPolygon,
+  closePolygon,
+} from "@/lib/GeometryService";
+import useFreehandDraw from "@/components/FreehandDrawHook";
+import LoadingOverlay from "@/components/LoadingOverlay";
+import ChartWithOverlay from "@/components/ChartWithOverlay";
 
 interface Campaign {
   id: number;
@@ -37,15 +20,30 @@ interface Campaign {
   calls: CallData[];
 }
 
+// Turns a list of points into SVG-friendly path strings
+function getBrushPaths(points: { x: number; y: number }[]) {
+  if (!points.length) return { brushPath: "", closedBrushPath: "" };
+  const brushPath = "M " + points.map((pt) => `${pt.x} ${pt.y}`).join(" L ");
+  return { brushPath, closedBrushPath: brushPath + " Z" };
+}
+
 export default function Dashboard() {
   const [campaign, setCampaign] = useState<Campaign | null>(null);
-  const [isDrawing, setIsDrawing] = useState(false);
-  const [pathPoints, setPathPoints] = useState<{ x: number; y: number }[]>([]);
   const [report, setReport] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const overlayRef = useRef<HTMLDivElement>(null);
 
-  // Fetch campaign data on mount.
+  // Drawing state and handlers come from this custom hook
+  const {
+    isDrawing,
+    pathPoints,
+    overlayRef,
+    setPathPoints,
+    handleMouseDown,
+    handleMouseMove,
+    handleMouseUp,
+  } = useFreehandDraw();
+
+  // Load campaign data when the page first mounts
   useEffect(() => {
     fetch("/api/campaigns")
       .then((res) => res.json())
@@ -57,168 +55,46 @@ export default function Dashboard() {
       .catch((error) => console.error("Error fetching campaigns:", error));
   }, []);
 
-  // Freehand drawing event handlers.
-  const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
-    setIsDrawing(true);
-    setPathPoints([]);
-    addPoint(e);
-  };
-
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!isDrawing) return;
-    addPoint(e);
-  };
-
-  const handleMouseUp = () => {
-    setIsDrawing(false);
-  };
-
-  const addPoint = (e: React.MouseEvent<HTMLDivElement>) => {
-    const rect = overlayRef.current?.getBoundingClientRect();
-    if (rect) {
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
-      setPathPoints((prev) => [...prev, { x, y }]);
-    }
-  };
-
-  // Ray-casting algorithm for point-in-polygon.
-  const isPointInPolygon = (
-    point: { x: number; y: number },
-    polygon: { x: number; y: number }[]
-  ): boolean => {
-    let inside = false;
-    for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
-      const xi = polygon[i].x,
-        yi = polygon[i].y;
-      const xj = polygon[j].x,
-        yj = polygon[j].y;
-      const intersect =
-        (yi > point.y) !== (yj > point.y) &&
-        point.x <
-          ((xj - xi) * (point.y - yi)) / (yj - yi + 0.000001) + xi;
-      if (intersect) inside = !inside;
-    }
-    return inside;
-  };
-
-  // Helpers for line segment intersection.
-  const isOnSegment = (
-    p: { x: number; y: number },
-    q: { x: number; y: number },
-    r: { x: number; y: number }
-  ): boolean => {
-    return (
-      q.x <= Math.max(p.x, r.x) &&
-      q.x >= Math.min(p.x, r.x) &&
-      q.y <= Math.max(p.y, r.y) &&
-      q.y >= Math.min(p.y, r.y)
-    );
-  };
-
-  const orientation = (
-    p: { x: number; y: number },
-    q: { x: number; y: number },
-    r: { x: number; y: number }
-  ): number => {
-    const val = (q.y - p.y) * (r.x - q.x) - (q.x - p.x) * (r.y - q.y);
-    if (Math.abs(val) < 0.000001) return 0;
-    return val > 0 ? 1 : 2;
-  };
-
-  const doLineSegmentsIntersect = (
-    p1: { x: number; y: number },
-    q1: { x: number; y: number },
-    p2: { x: number; y: number },
-    q2: { x: number; y: number }
-  ): boolean => {
-    const o1 = orientation(p1, q1, p2);
-    const o2 = orientation(p1, q1, q2);
-    const o3 = orientation(p2, q2, p1);
-    const o4 = orientation(p2, q2, q1);
-    if (o1 !== o2 && o3 !== o4) return true;
-    if (o1 === 0 && isOnSegment(p1, p2, q1)) return true;
-    if (o2 === 0 && isOnSegment(p1, q2, q1)) return true;
-    if (o3 === 0 && isOnSegment(p2, p1, q2)) return true;
-    if (o4 === 0 && isOnSegment(p2, q1, q2)) return true;
-    return false;
-  };
-
-  const segmentIntersectsPolygon = (
-    a: { x: number; y: number },
-    b: { x: number; y: number },
-    polygon: { x: number; y: number }[]
-  ): boolean => {
-    for (let i = 0; i < polygon.length - 1; i++) {
-      const p = polygon[i];
-      const q = polygon[i + 1];
-      if (doLineSegmentsIntersect(a, b, p, q)) {
-        return true;
-      }
-    }
-    return false;
-  };
-
-  // Construct a prompt from the selected call data.
-  const generatePrompt = (calls: CallData[]): string => {
-    return `Please analyze the following call data and provide a comprehensive, conversational report with clear paragraphs and actionable insights. In your analysis, explain in plain language what might be contributing to the observed outcomes.
-  
-  Call Details:
-  ${calls
-    .map(
-      (c) =>
-        `• Call ID ${c.id}:
-    Transcript: ${c.transcript}
-    Sentiment: ${c.sentiment}
-    Time of Day: ${c.timeOfDay}
-    Outcome: ${c.outcome}
-    Location: ${c.callerLocation}
-    Date: ${c.createdAt}
-  `
-    )
-    .join("\n")}
-  `;
-  };
-  
-  
-
-  // Combined selection logic and DeepSeek API call.
+  // What happens when the "Investigate" button is clicked
   const handleInvestigate = async () => {
     console.log("Investigate clicked with freehand path:", pathPoints);
+
     if (!campaign || pathPoints.length < 3 || !overlayRef.current) {
       console.warn("Not enough points or no campaign data.");
       return;
     }
+
     setIsLoading(true);
+
     const { width: chartWidth, height: chartHeight } =
       overlayRef.current.getBoundingClientRect();
 
-    const polygon = [...pathPoints];
-    const first = polygon[0];
-    const last = polygon[polygon.length - 1];
-    if (first.x !== last.x || first.y !== last.y) {
-      polygon.push(first);
-    }
+    const polygon = closePolygon([...pathPoints]);
 
     const ids = campaign.calls.map((call) => call.id);
     const minId = Math.min(...ids);
     const maxId = Math.max(...ids);
 
     const selectedCallsMap: { [id: number]: CallData } = {};
+
+
+    // Convert each call to a pixel coordinate
     const mappedCalls = campaign.calls.map((call) => {
       const x = ((call.id - minId) / (maxId - minId)) * chartWidth;
-      const y = (1 - ((call.sentiment + 1) / 2)) * chartHeight;
+      const y = (1 - (call.sentiment + 1) / 2) * chartHeight;
       return { call, point: { x, y } };
     });
 
-    // Include calls whose point is inside the polygon.
+
+    // Check which calls are inside the drawn polygon
     for (const { call, point } of mappedCalls) {
       if (isPointInPolygon(point, polygon)) {
         selectedCallsMap[call.id] = call;
       }
     }
 
-    // Include calls if the line segment between adjacent calls intersects the polygon.
+
+    // Also include any call segments that intersect the polygon
     for (let i = 0; i < mappedCalls.length - 1; i++) {
       const a = mappedCalls[i].point;
       const b = mappedCalls[i + 1].point;
@@ -232,13 +108,14 @@ export default function Dashboard() {
     console.log("Selected calls:", selectedCalls);
     console.log("Selected calls count:", selectedCalls.length);
 
+    // Send selected data to the DeepSeek API for analysis
     const prompt = generatePrompt(selectedCalls);
+
+    console.log("Generated prompt:", prompt);
     try {
       const response = await fetch("/api/deepseek", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ prompt }),
       });
       const data = await response.json();
@@ -250,11 +127,10 @@ export default function Dashboard() {
     }
   };
 
-  const brushPath =
-    pathPoints.length > 0
-      ? "M " + pathPoints.map((pt) => `${pt.x} ${pt.y}`).join(" L ")
-      : "";
-  const closedBrushPath = brushPath ? brushPath + " Z" : "";
+  
+  // If the user is drawing, we need to update the brush path
+  const { brushPath, closedBrushPath } = getBrushPaths(pathPoints);
+
 
   return (
     <div
@@ -266,8 +142,7 @@ export default function Dashboard() {
         color: "white",
       }}
     >
-      {/* Blurred Dashboard Content */}
-
+      {/* Content gets blurred when loading */}
       <div className={isLoading ? "blur-container" : ""}>
         <div className="header">
           <h1>Campaign Dashboard</h1>
@@ -289,6 +164,7 @@ export default function Dashboard() {
             <p>Loading campaign data...</p>
           )}
         </div>
+
         {campaign && (
           <div
             style={{
@@ -299,77 +175,18 @@ export default function Dashboard() {
               marginTop: "2rem",
             }}
           >
-            {/* Graph Container */}
-            <div
-              style={{
-                position: "relative",
-                width: "2000px",
-                height: "800px",
-                border: "1px solid #333",
-              }}
-            >
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart
-                  data={campaign.calls}
-                  margin={{ top: 0, right: 0, bottom: 0, left: 0 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="id" />
-                  <YAxis domain={[-1, 1]} />
-                  <Tooltip />
-                  <Line
-                    type="monotone"
-                    dataKey="sentiment"
-                    stroke="rgb(214, 58, 149)"
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-              {/* Freehand Brush Overlay */}
-              <div
-                ref={overlayRef}
-                style={{
-                  position: "absolute",
-                  top: 0,
-                  left: 0,
-                  width: "100%",
-                  height: "100%",
-                  cursor: "grab",
-                }}
-                onMouseDown={handleMouseDown}
-                onMouseMove={handleMouseMove}
-                onMouseUp={handleMouseUp}
-              >
-                {brushPath && (
-                  <svg
-                    width="100%"
-                    height="100%"
-                    style={{ position: "absolute", top: 0, left: 0 }}
-                  >
-                    <defs>
-                      <mask id="spotlightMask">
-                        <rect width="100%" height="100%" fill="white" />
-                        <path d={closedBrushPath} fill="black" />
-                      </mask>
-                    </defs>
-                    <rect
-                      width="100%"
-                      height="100%"
-                      fill="rgba(0, 0, 0, 0.5)"
-                      mask="url(#spotlightMask)"
-                    />
-                    <path
-                      d={brushPath}
-                      fill="none"
-                      stroke="rgba(255, 255, 255, 0.49)"
-                      strokeWidth="12"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                )}
-              </div>
-            </div>
-            {/* Button or nothing if loading */}
+            {/* The chart and the brush layer go here */}
+            <ChartWithOverlay
+              campaignCalls={campaign.calls}
+              overlayRef={overlayRef}
+              brushPath={brushPath}
+              closedBrushPath={closedBrushPath}
+              handleMouseDown={handleMouseDown}
+              handleMouseMove={handleMouseMove}
+              handleMouseUp={handleMouseUp}
+            />
+
+            {/* Button shows up only after drawing is done */}
             <div style={{ padding: "24px" }}>
               {!isLoading && brushPath && !isDrawing && (
                 <AnimatedInvestigateButton onClick={handleInvestigate} />
@@ -378,29 +195,13 @@ export default function Dashboard() {
           </div>
         )}
       </div>
-      {/* Loading Overlay (unblurred) */}
-      {isLoading && (
-        <div
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: "rgba(0, 0, 0, 0.7)",
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            zIndex: 1000,
-          }}
-        >
-          <LoadingAnimation />
-        </div>
-      )}
-      {/* Report Popup Modal */}
-      {report && (
-        <ReportPopup report={report} onClose={() => setReport(null)} />
-      )}
+
+      {/* Fullscreen loading overlay */}
+      {isLoading && <LoadingOverlay />}
+
+      {/* Popup for showing the generated report */}
+      {report && <ReportPopup report={report} onClose={() => setReport(null)} />}
+
       <style jsx>{`
         .blur-container {
           filter: blur(8px);
