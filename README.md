@@ -6,19 +6,16 @@ Insight Explorer is an interactive AI-powered dashboard designed for non-technic
 ![insight-explorer-demo](https://github.com/user-attachments/assets/8bdc2b8a-cf0d-48d3-ad85-aef221646bea)
 
 
-# 🚀 Insight-Explorer
-
-A visual platform for analyzing campaign sentiment and investigating patterns interactively.
 
 ---
 
-## ⚙️ Quick Start
+##  Quick Start
 
 Follow the steps below to get the app running locally.
 
 ---
 
-### ✅ Prerequisites
+###  Prerequisites
 
 Make sure you have the following installed:
 
@@ -28,40 +25,40 @@ Make sure you have the following installed:
 
 ---
 
-### 📥 1. Clone the Repository
+###  1. Clone the Repository
 
 
 `git clone https://github.com/PranaMohanty13/Insight-Explorer.git`
 
 `cd insight-explorer`
 
-### 📦 2. Install Dependencies
-`npm install`
+###  2. Install Dependencies
+-`npm install`
 
-### 📝 3. Create Environment File
+###  3. Create Environment File
 Create a .env file in the project root and add the following:
 
 Database connection URL
 
-`DATABASE_URL="postgresql://fakeuser:fakepassword@localhost:5432/fakedb"`
+-`DATABASE_URL="postgresql://fakeuser:fakepassword@localhost:5432/fakedb"`
 
 API Key for external integrations (replace with your actual key)
 
-`API_KEY="your-fake-api-key"`
+-`API_KEY="your-fake-api-key"`
 
-### 🐳 4. Start the Database
-`docker compose up -d`
+###  4. Start the Database
+-`docker compose up -d`
 
-### 🔧 5. Generate Prisma client
-`npx prisma generate`
+###  5. Generate Prisma client
+-`npx prisma generate`
 
-### 🔄 6. Push Prisma Schema
-`npx prisma db push`
+###  6. Push Prisma Schema
+-`npx prisma db push`
 
-### 🌱 7. Seed the Database
-`npx tsx prisma/seed.ts`
+###  7. Seed the Database
+-`npx tsx prisma/seed.ts`
 
-### 🧪 8. Run the App
-`npm run dev`
+###  8. Run the App
+-`npm run dev`
 
 
