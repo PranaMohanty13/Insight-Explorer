@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@prisma/client": "^6.5.0",
+    "@types/papaparse": "^5.3.15",
     "animejs": "^4.0.0",
     "dompurify": "^3.2.5",
     "dotenv": "^16.4.7",
@@ -19,8 +20,10 @@
     "jsdom": "^26.0.0",
     "next": "15.2.3",
     "openai": "^4.91.1",
+    "papaparse": "^5.5.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-simple-file-upload": "^1.1.0",
     "rechart": "^0.0.1",
     "recharts": "^2.15.1",
     "sass": "^1.86.3"

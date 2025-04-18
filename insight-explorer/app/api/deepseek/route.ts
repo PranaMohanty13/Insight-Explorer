@@ -6,7 +6,10 @@ export async function POST(request: Request) {
   try {
     const { prompt } = await request.json();
     if (!prompt) {
-      return NextResponse.json({ error: "Prompt is required" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Prompt is required" },
+        { status: 400 }
+      );
     }
 
     // Call DeepSeek API using your deepseekClient.
@@ -26,7 +29,10 @@ export async function POST(request: Request) {
   } catch (error: any) {
     console.error("DeepSeek API error:", error);
     return NextResponse.json(
-      { error: "Error fetching report from DeepSeek API", details: error.message },
+      {
+        error: "Error fetching report from DeepSeek API",
+        details: error.message,
+      },
       { status: 500 }
     );
   }

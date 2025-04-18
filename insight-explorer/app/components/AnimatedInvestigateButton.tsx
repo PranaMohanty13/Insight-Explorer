@@ -3,11 +3,12 @@
 import React, { useState } from "react";
 
 interface AnimatedInvestigateButtonCreativeProps {
+  a?: string;
   onClick: () => void;
 }
 
 export default function AnimatedInvestigateButtonCreative({
-  onClick,
+  onClick, a
 }: AnimatedInvestigateButtonCreativeProps) {
   const [clicked, setClicked] = useState(false);
 
@@ -17,7 +18,9 @@ export default function AnimatedInvestigateButtonCreative({
     setTimeout(() => setClicked(false), 800);
   };
 
+
   return (
+
     <button
       type="button"
       onClick={handleClick}
@@ -109,6 +112,7 @@ export default function AnimatedInvestigateButtonCreative({
         }
       `}</style>
     </button>
+
   );
 }
 
