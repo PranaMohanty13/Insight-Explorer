@@ -2,16 +2,16 @@
 
 import { useState, useEffect } from "react";
 import { generatePrompt, CallData } from "@/lib/GeneratePromptService";
-import AnimatedInvestigateButton from "@/components/AnimatedInvestigateButton";
-import ReportPopup from "@/components/ReportPopup";
+import AnimatedInvestigateButton from "@/app/components/AnimatedInvestigateButton";
+import ReportPopup from "@/app/components/ReportPopup";
 import {
   isPointInPolygon,
   segmentIntersectsPolygon,
   closePolygon,
 } from "@/lib/GeometryService";
-import useFreehandDraw from "@/components/FreehandDrawHook";
-import LoadingOverlay from "@/components/LoadingOverlay";
-import ChartWithOverlay from "@/components/ChartWithOverlay";
+import useFreehandDraw from "@/app/components/FreehandDrawHook";
+import LoadingOverlay from "@/app/components/LoadingOverlay";
+import ChartWithOverlay from "@/app/components/ChartWithOverlay";
 
 interface Campaign {
   id: number;
@@ -77,7 +77,6 @@ export default function Dashboard() {
 
     const selectedCallsMap: { [id: number]: CallData } = {};
 
-
     // Convert each call to a pixel coordinate
     const mappedCalls = campaign.calls.map((call) => {
       const x = ((call.id - minId) / (maxId - minId)) * chartWidth;
@@ -85,14 +84,12 @@ export default function Dashboard() {
       return { call, point: { x, y } };
     });
 
-
     // Check which calls are inside the drawn polygon
     for (const { call, point } of mappedCalls) {
       if (isPointInPolygon(point, polygon)) {
         selectedCallsMap[call.id] = call;
       }
     }
-
 
     // Also include any call segments that intersect the polygon
     for (let i = 0; i < mappedCalls.length - 1; i++) {
@@ -127,10 +124,10 @@ export default function Dashboard() {
     }
   };
 
-  
+  const handleAdditionalInsight = async () => {};
+
   // If the user is drawing, we need to update the brush path
   const { brushPath, closedBrushPath } = getBrushPaths(pathPoints);
-
 
   return (
     <div
@@ -200,7 +197,9 @@ export default function Dashboard() {
       {isLoading && <LoadingOverlay />}
 
       {/* Popup for showing the generated report */}
-      {report && <ReportPopup report={report} onClose={() => setReport(null)} />}
+      {report && (
+        <ReportPopup report={report} onClose={() => setReport(null)} />
+      )}
 
       <style jsx>{`
         .blur-container {

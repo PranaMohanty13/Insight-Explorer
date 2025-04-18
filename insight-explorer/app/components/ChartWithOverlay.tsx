@@ -48,7 +48,11 @@ export default function ChartWithOverlay({
           <XAxis dataKey="id" />
           <YAxis domain={[-1, 1]} />
           <Tooltip />
-          <Line type="monotone" dataKey="sentiment" stroke="rgb(214, 58, 149)" />
+          <Line
+            type="monotone"
+            dataKey="sentiment"
+            stroke="rgb(214, 58, 149)"
+          />
         </LineChart>
       </ResponsiveContainer>
 
@@ -69,7 +73,11 @@ export default function ChartWithOverlay({
       >
         {/* Render the SVG brush if a path exists  */}
         {brushPath && (
-          <svg width="100%" height="100%" style={{ position: "absolute", top: 0, left: 0 }}>
+          <svg
+            width="100%"
+            height="100%"
+            style={{ position: "absolute", top: 0, left: 0 }}
+          >
             <defs>
               {/* Use a mask to create a spotlight effect */}
               <mask id="spotlightMask">
@@ -80,13 +88,13 @@ export default function ChartWithOverlay({
             <rect
               width="100%"
               height="100%"
-              fill="rgba(0, 0, 0, 0.5)"
+              fill="rgba(0, 0, 0, 0.67)"
               mask="url(#spotlightMask)"
             />
             <path
               d={brushPath}
               fill="none"
-              stroke="rgba(255, 255, 255, 0.49)"
+              stroke="rgba(255, 255, 255, 0.45)"
               strokeWidth="12"
               strokeLinecap="round"
               strokeLinejoin="round"

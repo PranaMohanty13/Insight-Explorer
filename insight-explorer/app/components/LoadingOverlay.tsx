@@ -2,9 +2,12 @@
 import dynamic from "next/dynamic";
 
 // Dynamically import the LoadingAnimation component
-const LoadingAnimation = dynamic(() => import("@/components/LoadingAnimation"), {
-  ssr: false,
-});
+const LoadingAnimation = dynamic(
+  () => import("@/app/components/LoadingAnimation"),
+  {
+    ssr: false,
+  }
+);
 
 export default function LoadingOverlay() {
   return (

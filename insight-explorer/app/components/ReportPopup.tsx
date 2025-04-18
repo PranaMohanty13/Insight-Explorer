@@ -75,8 +75,8 @@ const ReportPopup: React.FC<ReportPopupProps> = ({ report, onClose }) => {
           );
           mask: radial-gradient(circle at 50% 50%, white 2px, transparent 2.5px)
               50% 50% / var(--size) var(--size),
-            url("https://assets.codepen.io/605876/noise-mask.png") 256px 50%
-              / 256px 256px;
+            url("https://assets.codepen.io/605876/noise-mask.png") 256px 50% /
+              256px 256px;
           mask-composite: intersect;
           animation: flicker 20s infinite linear;
           z-index: 0;
@@ -102,6 +102,7 @@ const ReportPopup: React.FC<ReportPopupProps> = ({ report, onClose }) => {
           color: #f0f0f0;
           cursor: pointer;
         }
+
         h2 {
           font-size: 3rem; /* Increase to your desired size */
           text-align: center;
@@ -114,6 +115,9 @@ const ReportPopup: React.FC<ReportPopupProps> = ({ report, onClose }) => {
           font-size: 1.2rem;
           opacity: 0;
           animation: slideIn 1s ease forwards;
+        }
+        .insight-button:hover {
+          opacity: 1;
         }
         @keyframes slideIn {
           0% {
@@ -136,9 +140,6 @@ const ReportPopup: React.FC<ReportPopupProps> = ({ report, onClose }) => {
 };
 
 export default ReportPopup;
-
-
-
 
 // This code defines a React functional component named ReportPopup.
 // It takes two props: `report`, which is a string containing the report content, and `onClose`, which is a function to close the popup.
